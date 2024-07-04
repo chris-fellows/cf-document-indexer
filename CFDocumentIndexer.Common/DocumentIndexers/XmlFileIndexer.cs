@@ -8,6 +8,8 @@ namespace CFDocumentIndexer.Common.DocumentIndexers
     /// </summary>
     public class XmlFileIndexer : IDocumentIndexer
     {
+        public int Priority => Int32.MaxValue;
+
         public IndexedDocument CreateIndex(string documentFile)
         {
             var indexedDocument = new IndexedDocument()
@@ -20,7 +22,7 @@ namespace CFDocumentIndexer.Common.DocumentIndexers
 
         public bool CanIndex(string documentFile)
         {
-            return false;   // documentFile.ToLower().EndsWith(".xml");
+            return documentFile.ToLower().EndsWith(".xml");
         }
     }
 }

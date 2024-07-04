@@ -58,12 +58,22 @@ namespace CFDocumentIndexer.Common.Services
             
         private Task<IndexedDocument> CreateIndexAsync(string documentFile, string group, SemaphoreSlim semaphore)
         {
+            //if (documentFile.ToLower().EndsWith(".docx"))
+            //{                
+            //    var objectIndexerTest = _documentIndexers.Where(di => di.CanIndex(documentFile))
+            //                                     .OrderBy(di => di.Priority).FirstOrDefault();
+            //    int xxx = 1000;
+            //}
+
             var task = Task.Factory.StartNew(() =>
             {
                 IndexedDocument indexedDocument = null;
                 try
                 {
-                    var objectIndexer = _documentIndexers.FirstOrDefault(di => di.CanIndex(documentFile));
+                    // Get highest priority indexer. The generic text file indexer is lower priority so that it's only used if there's
+                    // no higher priority indexer for the file type.
+                    var objectIndexer = _documentIndexers.Where(di => di.CanIndex(documentFile))
+                                                    .OrderBy(di => di.Priority).FirstOrDefault();
                     if (objectIndexer != null)                    
                     {
                         indexedDocument = objectIndexer.CreateIndex(documentFile);

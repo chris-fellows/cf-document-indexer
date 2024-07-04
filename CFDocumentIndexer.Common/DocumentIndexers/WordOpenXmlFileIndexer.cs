@@ -1,14 +1,16 @@
 ﻿using CFDocumentIndexer.Common.Interfaces;
 using CFDocumentIndexer.Common.Models;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace CFDocumentIndexer.Common.DocumentIndexers
 {
     /// <summary>
-    /// Indexes text files. If a .tags file exists then IndexedDocument.Tags will be set.
+    /// Indexes Word (Open XML) documents
     /// </summary>
-    public class TextFileIndexer : IDocumentIndexer
+    public class WordOpenXmlFileIndexer : IDocumentIndexer
     {
-        public int Priority => 10000;   // Only use if no higher priority for document
+        public int Priority => 1;
 
         public IndexedDocument CreateIndex(string documentFile)
         {
@@ -19,23 +21,21 @@ namespace CFDocumentIndexer.Common.DocumentIndexers
                 Tags = new List<string>()
             };
 
-            // Process file
-            // TODO: Make this more efficient
-            using (var reader = new StreamReader(documentFile))
+            using (var document = WordprocessingDocument.Open(documentFile, false))
             {
-                while (!reader.EndOfStream)
-                {
-                    var line = reader.ReadLine();
-                    if (!String.IsNullOrEmpty(line))
-                    {
-                        var items = GetLineItems(line);
-                        foreach (var item in items)
-                        {
-                            if (!indexedDocument.Items.Contains(item)) indexedDocument.Items.Add(item);
-                        }
-                    }
+                var innerText = document.MainDocumentPart.Document.Body.InnerText;
+                //var innerXml = document.MainDocumentPart.Document.Body.InnerXml;
+
+                indexedDocument.Items = GetLineItems(innerText).Distinct().ToList();
+
+                /*
+                foreach(var part in document.MainDocumentPart.Parts)
+                {                    
+                    int xxx = 1000;   
                 }
+                */
             }
+           
 
             // Read tags if exists
             var tagFile = $"{documentFile}.tags";
@@ -48,8 +48,8 @@ namespace CFDocumentIndexer.Common.DocumentIndexers
         }
 
         public bool CanIndex(string documentFile)
-        {
-            return true;   // Don't check extensions
+        {          
+            return documentFile.ToLower().EndsWith(".docx");
         }
 
         private static List<string> GetLineItems(string line)

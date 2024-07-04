@@ -15,9 +15,9 @@ namespace CFDocumentIndexer.UI
             _documentFilterManager = documentFilterManager;
             _documentIndexManager = documentIndexManager;
 
-            //RunIndexTest();
+            RunIndexTest();
 
-            RunFilterTest();
+            //RunFilterTest();
             //RunFilterAllTest();
             int xx = 1000;
         }

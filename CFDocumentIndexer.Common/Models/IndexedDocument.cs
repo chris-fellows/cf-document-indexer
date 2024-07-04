@@ -21,8 +21,13 @@
         public string DocumentFile { get; set; } = String.Empty;
 
         /// <summary>
-        /// Indexed items
+        /// Indexed items from document
         /// </summary>
         public List<string> Items { get; set; } = new List<string>();
+
+        /// <summary>
+        /// Tags
+        /// </summary>
+        public List<string> Tags { get; set; } = new List<string>();
     }
 }

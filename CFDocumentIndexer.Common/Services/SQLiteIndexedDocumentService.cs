@@ -37,7 +37,8 @@ namespace CFDocumentIndexer.Common.Services
                 "ID TEXT PRIMARY KEY NOT NULL, " +
                 "DocumentGroup TEXT NOT NULL, " +   // TODO: Consider Groups table
                 "DocumentFile TEXT NOT NULL, " +
-                "Data TEXT" +
+                "Data TEXT, " +
+                "Tags TEXT" +
                 ")";
             var command = new SQLiteCommand(sql, connection);
             command.ExecuteNonQuery();
@@ -65,12 +66,13 @@ namespace CFDocumentIndexer.Common.Services
             command1.Parameters.Add((new SQLiteParameter("@p2", indexedDocument.DocumentFile)));            
             command1.ExecuteNonQuery();
 
-            sql = "INSERT INTO IndexedDocuments (ID, DocumentGroup, DocumentFile, Data) VALUES(@p1, @p2, @p3, @p4)";
+            sql = "INSERT INTO IndexedDocuments (ID, DocumentGroup, DocumentFile, Data, Tags) VALUES(@p1, @p2, @p3, @p4, @p5)";
             var command = new SQLiteCommand(sql, connection);
             command.Parameters.Add((new SQLiteParameter("@p1", Guid.NewGuid().ToString())));
             command.Parameters.Add((new SQLiteParameter("@p2", indexedDocument.Group)));
             command.Parameters.Add((new SQLiteParameter("@p3", indexedDocument.DocumentFile)));
             command.Parameters.Add((new SQLiteParameter("@p4", System.String.Join("\t", indexedDocument.Items))));
+            command.Parameters.Add((new SQLiteParameter("@p5", System.String.Join("\t", indexedDocument.Tags))));
             command.ExecuteNonQuery();
         }
 
@@ -103,21 +105,15 @@ namespace CFDocumentIndexer.Common.Services
             }
         }
 
-        public IEnumerable<IndexedDocument> GetAll(string group)
+        /// <summary>
+        /// Returns indexed documents from SQL command
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="returnItems"></param>
+        /// <returns></returns>
+        private static IEnumerable<IndexedDocument> GetIndexedDocuments(SQLiteCommand command, bool returnItems)
         {
-            if (String.IsNullOrEmpty(group))
-            {
-                throw new ArgumentNullException(group);
-            }
-
-            var connection = GetConnection();
             var documents = new List<IndexedDocument>();
-
-            var sql = "SELECT ID, DocumentGroup, DocumentFile, Data FROM IndexedDocuments WHERE DocumentGroup = @p1 ORDER BY DocumentFile";
-
-            var command = new SQLiteCommand(sql, connection);
-            command.Parameters.Add((new SQLiteParameter("@p1", group)));
-
             using (var reader = command.ExecuteReader(System.Data.CommandBehavior.Default))
             {
                 do
@@ -129,13 +125,32 @@ namespace CFDocumentIndexer.Common.Services
                             Id = reader.GetString(reader.GetOrdinal("ID")),
                             Group = reader.GetString(reader.GetOrdinal("DocumentGroup")),
                             DocumentFile = reader.GetString(reader.GetOrdinal("DocumentFile")),
-                            Items = reader.GetString(reader.GetOrdinal("Data")).Split('\t').Select(i => i).ToList()
+                            Items = reader.GetString(reader.GetOrdinal("Data")).Split('\t').Select(i => i).ToList(),
+                            Tags = reader.GetString(reader.GetOrdinal("Tags")).Split('\t').Select(i => i).ToList()
                         };
                         documents.Add(indexedDocument);
                     }
                 } while (reader.NextResult());
             }
 
+            return documents;
+        }
+
+        public IEnumerable<IndexedDocument> GetAll(string group)
+        {
+            if (String.IsNullOrEmpty(group))
+            {
+                throw new ArgumentNullException(group);
+            }
+
+            var connection = GetConnection();            
+
+            var sql = "SELECT ID, DocumentGroup, DocumentFile, Data, Tags FROM IndexedDocuments WHERE DocumentGroup = @p1 ORDER BY DocumentFile";
+
+            var command = new SQLiteCommand(sql, connection);
+            command.Parameters.Add((new SQLiteParameter("@p1", group)));
+
+            var documents = GetIndexedDocuments(command, true);
             return documents;
         }
 
@@ -147,36 +162,19 @@ namespace CFDocumentIndexer.Common.Services
             }
 
             var connection = GetConnection();
-            var documents = new List<IndexedDocument>();
-
+            
+            // Set SQL query
             var sql = returnItems ?
-                        "SELECT ID, DocumentGroup, DocumentFile, Data FROM IndexedDocuments WHERE DocumentGroup = @p1 AND Data LIKE @p2 ORDER BY DocumentFile " :
-                        "SELECT ID, DocumentGroup, DocumentFile FROM IndexedDocuments WHERE DocumentGroup = @p1 AND Data LIKE @p2 ORDER BY DocumentFile ";
+                        "SELECT ID, DocumentGroup, DocumentFile, Data, Tags FROM IndexedDocuments WHERE DocumentGroup = @p1 AND (Data LIKE @p2 OR Tags LIKE @p2) ORDER BY DocumentFile " :
+                        "SELECT ID, DocumentGroup, DocumentFile, Tags FROM IndexedDocuments WHERE DocumentGroup = @p1 AND (Data LIKE @p2 OR Tags LIKE @p2) ORDER BY DocumentFile ";
             if (maxDocuments != null) sql += $"LIMIT {maxDocuments.Value}";
 
             var command = new SQLiteCommand(sql, connection);
             command.Parameters.Add((new SQLiteParameter("@p1", group)));
             command.Parameters.Add((new SQLiteParameter("@p2", $"%{textToFind}%")));
-            
-            using (var reader = command.ExecuteReader(System.Data.CommandBehavior.Default))
-            {
-                do
-                {
-                    while (reader.Read())
-                    {
-                        var indexedDocument = new IndexedDocument()
-                        {
-                            Id = reader.GetString(reader.GetOrdinal("ID")),
-                            Group = reader.GetString(reader.GetOrdinal("DocumentGroup")),
-                            DocumentFile = reader.GetString(reader.GetOrdinal("DocumentFile")),
-                            Items = returnItems ?
-                                    reader.GetString(reader.GetOrdinal("Data")).Split('\t').Select(i => i).ToList() :
-                                    new List<string>()
-                        };
-                        documents.Add(indexedDocument);
-                    }
-                } while (reader.NextResult());
-            }
+
+            // Process results
+            var documents = GetIndexedDocuments(command, returnItems);            
 
             return documents;
         }       
