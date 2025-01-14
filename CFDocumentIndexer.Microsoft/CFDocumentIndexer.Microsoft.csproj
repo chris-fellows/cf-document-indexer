@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CFDocumentIndexer.Common\CFDocumentIndexer.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Indexers\Audio\" />
+    <Folder Include="Indexers\Video\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.CognitiveServices.Vision.ComputerVision" Version="7.0.1" />
+  </ItemGroup>
+
+</Project>

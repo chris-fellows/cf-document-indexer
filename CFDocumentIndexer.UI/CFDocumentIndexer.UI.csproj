@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CFDocumentIndexer.Common\CFDocumentIndexer.Common.csproj" />
+    <ProjectReference Include="..\CFDocumentIndexer.Microsoft\CFDocumentIndexer.Microsoft.csproj" />
   </ItemGroup>
 
 </Project>

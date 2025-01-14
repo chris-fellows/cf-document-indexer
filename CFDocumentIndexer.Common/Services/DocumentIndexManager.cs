@@ -1,32 +1,28 @@
-﻿using CFDocumentIndexer.Common.Interfaces;
-using CFDocumentIndexer.Common.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using CFDocumentIndexer.Interfaces;
+using CFDocumentIndexer.Models;
+using DocumentFormat.OpenXml.Drawing.Charts;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace CFDocumentIndexer.Common.Services
+namespace CFDocumentIndexer.Services
 {
     public class DocumentIndexManager : IDocumentIndexManager
-    {
-        private readonly IEnumerable<IDocumentIndexer> _documentIndexers;
+    {        
         private readonly IIndexedDocumentService _indexedDocumentService;
+        private readonly IServiceProvider _serviceProvider;
 
-        public DocumentIndexManager(IEnumerable<IDocumentIndexer> documentIndexers,
-                                    IIndexedDocumentService indexedDocumentService)
-        {
-            _documentIndexers = documentIndexers;
+        public DocumentIndexManager(IIndexedDocumentService indexedDocumentService,
+                                    IServiceProvider serviceProvider)
+        {     
             _indexedDocumentService = indexedDocumentService;
+            _serviceProvider = serviceProvider;            
         }
 
-        public Task CreateIndexesAsync(List<string> documentFiles, string group)
+        public Task IndexDocumentsAsync(List<string> documentFiles, DocumentIndexConfig documentIndexConfig)
         {
             return Task.Factory.StartNew(() =>
-            {
+            {                
                 // Index documents, limit max number
-                var semaphore = new SemaphoreSlim(5, 5);
+                var semaphore = new SemaphoreSlim(documentIndexConfig.MaxConcurrentTasks, documentIndexConfig.MaxConcurrentTasks);
                 var tasks = new List<Task<IndexedDocument>>();
                 foreach (var documentFile in documentFiles)
                 {
@@ -34,57 +30,60 @@ namespace CFDocumentIndexer.Common.Services
                     bool waited = false;
                     do
                     {
-                        waited = semaphore.Wait(TimeSpan.FromMilliseconds(5000));
+                        waited = semaphore.Wait(TimeSpan.FromMilliseconds(100));
 
                         HandleIndexedDocuments(tasks);
                     } while (!waited);
 
                     // Start index
-                    var task = CreateIndexAsync(documentFile, group, semaphore);
+                    var task = IndexDocumentAsync(documentFile, documentIndexConfig.Group, semaphore);
                     tasks.Add(task);
                 }
 
                 // Wait for tasks to completed
                 while (tasks.Any())
                 {
-                    HandleIndexedDocuments(tasks);
-                    if (tasks.Any())
-                    {
-                        System.Threading.Thread.Sleep(1000);
-                    }
+                    HandleIndexedDocuments(tasks);                    
+                    System.Threading.Thread.Sleep(100);                    
                 }
             });
         }
             
-        private Task<IndexedDocument> CreateIndexAsync(string documentFile, string group, SemaphoreSlim semaphore)
-        {
-            //if (documentFile.ToLower().EndsWith(".docx"))
-            //{                
-            //    var objectIndexerTest = _documentIndexers.Where(di => di.CanIndex(documentFile))
-            //                                     .OrderBy(di => di.Priority).FirstOrDefault();
-            //    int xxx = 1000;
-            //}
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="documentFile"></param>
+        /// <param name="group"></param>
+        /// <param name="semaphore"></param>
+        /// <returns></returns>
+        private Task<IndexedDocument?> IndexDocumentAsync(string documentFile, string group, SemaphoreSlim semaphore)
+        {           
             var task = Task.Factory.StartNew(() =>
             {
-                IndexedDocument indexedDocument = null;
-                try
+                using (var scope = _serviceProvider.CreateScope())
                 {
-                    // Get highest priority indexer. The generic text file indexer is lower priority so that it's only used if there's
-                    // no higher priority indexer for the file type.
-                    var objectIndexer = _documentIndexers.Where(di => di.CanIndex(documentFile))
-                                                    .OrderBy(di => di.Priority).FirstOrDefault();
-                    if (objectIndexer != null)                    
+                    IndexedDocument? indexedDocument = null;
+                    try
                     {
-                        indexedDocument = objectIndexer.CreateIndex(documentFile);
-                        indexedDocument.Group = group;
+                        // Get document indexers
+                        var documentIndexers = scope.ServiceProvider.GetServices<IDocumentIndexer>();
+
+                        // Get highest priority indexer. The generic text file indexer is lower priority so that it's only used if there's
+                        // no higher priority indexer for the file type.
+                        var documentIndexer = documentIndexers.Where(di => di.CanIndex(documentFile))
+                                                        .OrderBy(di => di.Priority).FirstOrDefault();
+                        if (documentIndexer != null)
+                        {
+                            indexedDocument = documentIndexer.CreateIndexAsync(documentFile).Result;
+                            indexedDocument.Group = group;
+                        }
                     }
+                    finally
+                    {
+                        semaphore.Release();
+                    }
+                    return indexedDocument;
                 }
-                finally
-                {
-                    semaphore.Release();
-                }
-                return indexedDocument;
             });
 
             return task;

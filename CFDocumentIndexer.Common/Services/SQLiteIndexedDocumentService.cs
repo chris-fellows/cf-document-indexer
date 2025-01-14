@@ -1,8 +1,8 @@
-﻿using CFDocumentIndexer.Common.Interfaces;
-using CFDocumentIndexer.Common.Models;
+﻿using CFDocumentIndexer.Interfaces;
+using CFDocumentIndexer.Models;
 using System.Data.SQLite;
 
-namespace CFDocumentIndexer.Common.Services
+namespace CFDocumentIndexer.Services
 {
     /// <summary>
     /// Indexed document service using SQLite.
@@ -10,7 +10,7 @@ namespace CFDocumentIndexer.Common.Services
     public class SQLiteIndexedDocumentService : IIndexedDocumentService, IDisposable
     {
         private readonly string _connectionString;
-        private SQLiteConnection _connection;
+        private SQLiteConnection? _connection;
 
         public SQLiteIndexedDocumentService(string connectionString)
         {

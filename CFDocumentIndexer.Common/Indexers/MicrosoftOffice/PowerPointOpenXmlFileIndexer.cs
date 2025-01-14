@@ -1,9 +1,9 @@
-﻿using CFDocumentIndexer.Common.Interfaces;
-using CFDocumentIndexer.Common.Models;
+﻿using CFDocumentIndexer.Interfaces;
+using CFDocumentIndexer.Models;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Presentation;
 
-namespace CFDocumentIndexer.Common.DocumentIndexers
+namespace CFDocumentIndexer.Indexers.MicrosoftOffice
 {
     /// <summary>
     /// Indexes PowerPoint (Open XML) documents
@@ -12,7 +12,7 @@ namespace CFDocumentIndexer.Common.DocumentIndexers
     {
         public int Priority => 1;
 
-        public IndexedDocument CreateIndex(string documentFile)
+        public Task<IndexedDocument> CreateIndexAsync(string documentFile)
         {
             var indexedDocument = new IndexedDocument()
             {
@@ -23,7 +23,7 @@ namespace CFDocumentIndexer.Common.DocumentIndexers
 
             using (var document = PresentationDocument.Open(documentFile, false))
             {
-                
+
             }
 
             // Read tags if exists
@@ -33,7 +33,7 @@ namespace CFDocumentIndexer.Common.DocumentIndexers
                 indexedDocument.Tags = File.ReadAllText(tagFile).Split('\t').Distinct().ToList();
             }
 
-            return indexedDocument;
+            return Task.FromResult(indexedDocument);
         }
 
         public bool CanIndex(string documentFile)

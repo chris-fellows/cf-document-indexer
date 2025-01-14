@@ -1,4 +1,4 @@
-﻿namespace CFDocumentIndexer.Common.Models
+﻿namespace CFDocumentIndexer.Models
 {
     /// <summary>
     /// Document filter options

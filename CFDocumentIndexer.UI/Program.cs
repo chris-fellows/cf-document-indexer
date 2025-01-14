@@ -1,8 +1,13 @@
-using CFDocumentIndexer.Common.DocumentIndexers;
-using CFDocumentIndexer.Common.Interfaces;
-using CFDocumentIndexer.Common.Services;
+using CFDocumentIndexer.Indexers;
+using CFDocumentIndexer.Interfaces;
+using CFDocumentIndexer.Microsoft;
+using CFDocumentIndexer.Microsoft.Indexers.Images;
+using CFDocumentIndexer.Microsoft.Interfaces;
+using CFDocumentIndexer.Microsoft.Models;
+using CFDocumentIndexer.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Configuration;
 using System.Reflection;
 
 namespace CFDocumentIndexer.UI
@@ -32,20 +37,44 @@ namespace CFDocumentIndexer.UI
         static IHostBuilder CreateHostBuilder()
         {
             // TODO: Move to config
-            var connectionString= "Data Source=D:\\Test\\DocumentIndex\\DocumentData.db";
+            //var connectionString= "Data Source=D:\\Test\\DocumentIndex\\DocumentData.db";            
 
             return Host.CreateDefaultBuilder()
                 .ConfigureServices((context, services) => {
+                    // Register document indexers in Common assembly
                     services.RegisterAllTypes<IDocumentIndexer>(new[] { typeof(TextFileIndexer).Assembly });
+                    
                     services.AddTransient<IDocumentFilterManager, DocumentFilterManager>();
                     services.AddTransient<IDocumentIndexManager, DocumentIndexManager>();
+                    
+                    services.AddDocumentIndexerMicrosoft();
+               
                     services.AddTransient<IIndexedDocumentService>((scope) =>
                     {
+                        var connectionString = ConfigurationManager.AppSettings["DatabaseConnectionString"].ToString();
                         return new SQLiteIndexedDocumentService(connectionString);
                     });
-
+                    
                     services.AddTransient<MainForm>();
                 });
+        }        
+
+        /// <summary>
+        /// Adds document indexer for Microsoft
+        /// </summary>
+        /// <param name="services"></param>
+        private static void AddDocumentIndexerMicrosoft(this IServiceCollection services)
+        {
+            services.RegisterAllTypes<IDocumentIndexer>(new[] { typeof(VisionImageFileIndexer).Assembly });
+
+            services.AddSingleton<IVisionConfig>((scope) =>
+            {
+                return new VisionConfig()
+                {
+                    APIKey = ConfigurationManager.AppSettings["VisionAPIKey"].ToString(),
+                    Endpoint = ConfigurationManager.AppSettings["VisionEndpoint"].ToString()
+                };
+            });
         }
 
         /// <summary>

@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CFDocumentIndexer.UI", "CFD
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CFDocumentIndexer.Common", "..\CFDocumentIndexer.Common\CFDocumentIndexer.Common.csproj", "{62BA4AEA-5CF4-4A85-9ECB-E6F02A3C19D7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CFDocumentIndexer.Microsoft", "..\CFDocumentIndexer.Microsoft\CFDocumentIndexer.Microsoft.csproj", "{3232590A-7F23-47B7-A2D7-3FFA794762DB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{62BA4AEA-5CF4-4A85-9ECB-E6F02A3C19D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{62BA4AEA-5CF4-4A85-9ECB-E6F02A3C19D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{62BA4AEA-5CF4-4A85-9ECB-E6F02A3C19D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3232590A-7F23-47B7-A2D7-3FFA794762DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3232590A-7F23-47B7-A2D7-3FFA794762DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3232590A-7F23-47B7-A2D7-3FFA794762DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3232590A-7F23-47B7-A2D7-3FFA794762DB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

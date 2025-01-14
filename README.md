@@ -8,6 +8,10 @@ Document Indexers
 A document indexer can be defined for individual document types (E.g. .docx) but it one is not defined then
 the default document indexer (E.g. Treat as text file) will be used.
 
+Image Indexes
+-------------
+Image documents can be indexed using Microsoft Computer Vision AI.
+
 Tags
 ----
 If a file [document].tags exists then it should contain a tab delimited list of tags that can be searched.

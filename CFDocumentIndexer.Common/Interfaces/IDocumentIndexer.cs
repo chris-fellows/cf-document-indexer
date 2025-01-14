@@ -1,6 +1,6 @@
-﻿using CFDocumentIndexer.Common.Models;
+﻿using CFDocumentIndexer.Models;
 
-namespace CFDocumentIndexer.Common.Interfaces
+namespace CFDocumentIndexer.Interfaces
 {
     /// <summary>
     /// Interface for indexing a document
@@ -15,11 +15,11 @@ namespace CFDocumentIndexer.Common.Interfaces
         int Priority { get; }
 
         /// <summary>
-        /// Creates index
+        /// Creates index asynchronously
         /// </summary>
         /// <param name="documentFile"></param>
         /// <returns></returns>
-        IndexedDocument CreateIndex(string documentFile);
+        Task<IndexedDocument> CreateIndexAsync(string documentFile);
 
         /// <summary>
         /// Whether instance can index this document

@@ -1,6 +1,6 @@
-﻿using CFDocumentIndexer.Common.Models;
+﻿using CFDocumentIndexer.Models;
 
-namespace CFDocumentIndexer.Common.Interfaces
+namespace CFDocumentIndexer.Interfaces
 {
     /// <summary>
     /// Interface for document index manager
@@ -11,8 +11,8 @@ namespace CFDocumentIndexer.Common.Interfaces
         /// Creates indexes for files
         /// </summary>
         /// <param name="documentFiles">Files to index</param>
-        /// <param name="group">Document group</param>
+        /// <param name="documentIndexConfig">Document group</param>
         /// <returns></returns>
-        Task CreateIndexesAsync(List<string> documentFiles, string group);
+        Task IndexDocumentsAsync(List<string> documentFiles, DocumentIndexConfig documentIndexConfig);
     }
 }

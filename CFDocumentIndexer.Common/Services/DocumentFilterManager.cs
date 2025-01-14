@@ -1,7 +1,7 @@
-﻿using CFDocumentIndexer.Common.Interfaces;
-using CFDocumentIndexer.Common.Models;
+﻿using CFDocumentIndexer.Interfaces;
+using CFDocumentIndexer.Models;
 
-namespace CFDocumentIndexer.Common.Services
+namespace CFDocumentIndexer.Services
 {
     public class DocumentFilterManager : IDocumentFilterManager
     {

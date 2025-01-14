@@ -1,7 +1,7 @@
-﻿using CFDocumentIndexer.Common.Interfaces;
-using CFDocumentIndexer.Common.Models;
+﻿using CFDocumentIndexer.Interfaces;
+using CFDocumentIndexer.Models;
 
-namespace CFDocumentIndexer.Common.DocumentIndexers
+namespace CFDocumentIndexer.Indexers
 {
     /// <summary>
     /// Indexes XML files. Allow search of only the content
@@ -10,14 +10,15 @@ namespace CFDocumentIndexer.Common.DocumentIndexers
     {
         public int Priority => Int32.MaxValue;
 
-        public IndexedDocument CreateIndex(string documentFile)
+        public Task<IndexedDocument> CreateIndexAsync(string documentFile)
         {
             var indexedDocument = new IndexedDocument()
             {
                 DocumentFile = documentFile,
                 Items = new List<string>()
             };
-            return indexedDocument;
+
+            return Task.FromResult(indexedDocument);
         }
 
         public bool CanIndex(string documentFile)

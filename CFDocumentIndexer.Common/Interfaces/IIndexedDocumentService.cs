@@ -1,6 +1,6 @@
-﻿using CFDocumentIndexer.Common.Models;
+﻿using CFDocumentIndexer.Models;
 
-namespace CFDocumentIndexer.Common.Interfaces
+namespace CFDocumentIndexer.Interfaces
 {
     /// <summary>
     /// Interface for indexed documents
